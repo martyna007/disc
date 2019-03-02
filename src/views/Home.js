@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Loader from '../components/Loader'
 import Folder from '../components/Folder'
+import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 const disc = {
 	_embedded: {
@@ -69,15 +70,45 @@ class Home extends Component {
 			loaded: true
 		})
 	}
-
+	handleClick = (e, data) => {
+		console.log(data.foo);
+	};
 
 	render() {
 		if (this.state.loaded) {
 			return (
 				<div>
-					{this.state.disc.map((folder, index) => {
-						return <Folder key={index} name={folder.folder.name} link={folder._links.children.href}/>
-					})}
+					<div className="main-container">
+						{this.state.disc.map((folder, index) => {
+							return <div key={index} className="folder-container-wrapper">
+								<ContextMenuTrigger id={index + 'folder'}>
+									<Folder name={folder.folder.name} links={folder._links} />
+								</ContextMenuTrigger>
+
+								<ContextMenu id={index + 'folder'}>
+									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+										Open
+									</MenuItem>
+									<MenuItem divider />
+									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+										Change name
+									</MenuItem>
+									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+										Details
+									</MenuItem>
+									<MenuItem divider />
+									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+										Delete
+									</MenuItem>
+								</ContextMenu>
+							</div>
+						})}
+					</div>
+					<div className="aside-container">
+						<p>Create new folder</p>
+						<p>Add new file</p>
+					</div>
+
 				</div>
 			);
 		} else {

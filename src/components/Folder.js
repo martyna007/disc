@@ -1,19 +1,22 @@
 import React, { Component } from 'react';
-import ContextMenu from "../views/Home";
 
 class Folder extends Component {
-	
+	constructor(props) {
+		super(props);
+		this.state = {
+			loaded: false,
+			children: props.links.children.href,
+			self: props.links.self.href,
+			delete: props.links.delete.href
+		};
+	}
 
 	render() {
 		return (
-			<div>
-				<ContextMenu/>
-				<div className="folder-container" onContextMenu={this.handleClick}>
-					<img src={require('../images/folder.png')} alt="folder"/>
-					<p>{this.props.name}</p>
-				</div>
+			<div className="folder-container">
+				<img src={require('../images/folder.png')} alt="folder"/>
+				<p>{this.props.name}</p>
 			</div>
-
 		);
 	}
 }
