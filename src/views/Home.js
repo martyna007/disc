@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import Loader from '../components/Loader'
 import Folder from '../components/Folder'
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
@@ -63,6 +64,7 @@ class Home extends Component {
 		this.state = {
 			loaded: false,
 			disc: disc._embedded.folderResourceList,
+			details: ''
 		};
 	}
 	componentDidMount() {
@@ -73,6 +75,29 @@ class Home extends Component {
 	handleClick = (e, data) => {
 		console.log(data.foo);
 	};
+	showDetails(folder, event) {
+
+		const domNode = ReactDOM.findDOMNode(this);
+
+		if (!domNode || !domNode.contains(event.target)) {
+			console.log('uncechk');
+		} else {
+			console.log('lol');
+			this.setState({
+				details: folder.folder.name
+			})
+		}
+
+	};
+	detailsToggle = () => {
+		console.log('lol2');
+		if (this.state.details !== '') {
+			return <div>
+				<p>Details</p>
+				<p>Name: {this.state.details}</p>
+			</div>
+		}
+	};
 
 	render() {
 		if (this.state.loaded) {
@@ -82,11 +107,10 @@ class Home extends Component {
 						<div className="border-container">
 							<span>
 								{this.state.disc.map((folder, index) => {
-									return <div key={index} className="folder-container-wrapper">
+									return <div key={index} className="folder-container-wrapper" onClick={this.showDetails.bind(this, folder)}>
 										<ContextMenuTrigger id={index + 'folder'}>
-											<Folder name={folder.folder.name} links={folder._links} />
+											<Folder name={folder.folder.name} links={folder._links} id={index + 'folder'}/>
 										</ContextMenuTrigger>
-
 										<ContextMenu id={index + 'folder'}>
 											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
 												<span className="menu-item">
@@ -127,6 +151,8 @@ class Home extends Component {
 						<p><i className="material-icons">
 							add
 						</i>Add new file</p>
+						{this.detailsToggle()}
+
 					</div>
 
 				</div>

@@ -14,8 +14,12 @@ class Folder extends Component {
 	render() {
 		return (
 			<div className="folder-container">
-				<i className="material-icons">folder</i>
-				<p>{this.props.name}</p>
+				<input type="radio" name="rGroup" value={this.props.id} id={this.props.id}/>
+				<label className="radio" htmlFor={this.props.id}>
+					<i className="material-icons">folder</i>
+					<p>{this.props.name}</p>
+				</label>
+
 			</div>
 		);
 	}
