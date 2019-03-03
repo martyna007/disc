@@ -1,3 +1,11 @@
+:root {
+	--borders: #585a83;
+	--text: #eee;
+	--bg-primary: #eee;
+	--container-bg: rgba(0,0,0, 0.6);
+	--accent: #bc45bc;
+}
+
 .lds-ring {
 	display: inline-block;
 	position: relative;
@@ -42,28 +50,28 @@
 	margin: 14px 24px;
 	cursor: pointer;
 }
-.folder-container img {
-	width: 70px;
+.folder-container i {
+	font-size: 56px;
+	margin: 0;
+	transition: 0.2s color ease-out;
 }
-.folder-container:hover img {
-	filter: brightness(55%);
+.folder-container:hover i {
+	color: var(--accent);
 }
 .folder-container p {
 	font-size: 13px;
 	margin: 0;
 }
 body {
-	font-family: 'Roboto', sans-serif;
-	background-color: #eee;
-	font-size: 14px;
+	font-family: 'Roboto Condensed', sans-serif;
+	color: var(--text);
+	font-size: 16px;
 }
 body p {
 	font-size: 2em;
 }
-
-
 .react-contextmenu {
-	background-color: #fff;
+	background-color: var(--bg-primary);
 	background-clip: padding-box;
 	border: 1px solid rgba(0,0,0,.15);
 	border-radius: .25rem;
@@ -96,6 +104,7 @@ body p {
 	text-align: inherit;
 	white-space: nowrap;
 	font-size: 13px;
+	transition: 0.2s background-color ease-out;
 }
 
 .react-contextmenu-item.react-contextmenu-item--active,
@@ -142,15 +151,58 @@ body p {
 	content: attr(data-count);
 	display: block;
 }
+.menu-item {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+}
+.menu-item i {
+	font-size: 18px;
+}
+.container-wrapper {
+	background-image: url('../images/bg7.jpg');
+	background-size: cover;
+}
+.container {
+	display: flex;
+	max-width: 1000px;
+	min-height: 600px;
+	margin: 20px auto;
+}
 .main-container {
-	width: calc(100% - 200px);
+	width: calc(100% - 225px);
 	text-align: center;
 	display: inline-block;
+	border-radius: 6px;
+	background-color: var(--container-bg);
+	margin: 0 10px;
+	padding: 20px;
 }
 .aside-container {
-	width: 200px;
-	display: inline-block;
+	width: 225px;
+	display: inline-flex;
+	flex-direction: column;
+	border-radius: 6px;
+	background-color: var(--container-bg);
+	margin: 0 10px;
+	padding: 20px;
+
 }
 .aside-container p {
 	font-size: 13px;
+	display: inline-flex;
+	padding: 12px;
+	align-items: center;
+	cursor: pointer;
+	border-radius: 6px;
+	border: 1px solid #000;
+	margin: 6px 0;
+	transition: 0.2s background-color ease-out;
+}
+.aside-container p:hover {
+	background-color: var(--accent);
+
+}
+.material-icons {
+	margin-right: 6px;
 }

@@ -77,36 +77,56 @@ class Home extends Component {
 	render() {
 		if (this.state.loaded) {
 			return (
-				<div>
+				<div className="container">
 					<div className="main-container">
-						{this.state.disc.map((folder, index) => {
-							return <div key={index} className="folder-container-wrapper">
-								<ContextMenuTrigger id={index + 'folder'}>
-									<Folder name={folder.folder.name} links={folder._links} />
-								</ContextMenuTrigger>
+						<div className="border-container">
+							<span>
+								{this.state.disc.map((folder, index) => {
+									return <div key={index} className="folder-container-wrapper">
+										<ContextMenuTrigger id={index + 'folder'}>
+											<Folder name={folder.folder.name} links={folder._links} />
+										</ContextMenuTrigger>
 
-								<ContextMenu id={index + 'folder'}>
-									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
-										Open
-									</MenuItem>
-									<MenuItem divider />
-									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
-										Change name
-									</MenuItem>
-									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
-										Details
-									</MenuItem>
-									<MenuItem divider />
-									<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
-										Delete
-									</MenuItem>
-								</ContextMenu>
-							</div>
-						})}
+										<ContextMenu id={index + 'folder'}>
+											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+												<span className="menu-item">
+													<i className="material-icons">subdirectory_arrow_right</i>Open
+												</span>
+
+											</MenuItem>
+											<MenuItem divider />
+											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+												<span className="menu-item">
+													<i className="material-icons">edit</i>Change name
+												</span>
+
+											</MenuItem>
+											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+												<span className="menu-item">
+													<i className="material-icons">subject</i>Details
+												</span>
+
+											</MenuItem>
+											<MenuItem divider />
+											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+												<span className="menu-item">
+													<i className="material-icons">delete</i>Delete
+												</span>
+
+											</MenuItem>
+										</ContextMenu>
+									</div>
+								})}
+							</span>
+						</div>
 					</div>
 					<div className="aside-container">
-						<p>Create new folder</p>
-						<p>Add new file</p>
+						<p><i className="material-icons">
+							add
+						</i>Create new folder</p>
+						<p><i className="material-icons">
+							add
+						</i>Add new file</p>
 					</div>
 
 				</div>

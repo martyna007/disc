@@ -14,7 +14,7 @@ class Folder extends Component {
 	render() {
 		return (
 			<div className="folder-container">
-				<img src={require('../images/folder.png')} alt="folder"/>
+				<i className="material-icons">folder</i>
 				<p>{this.props.name}</p>
 			</div>
 		);
