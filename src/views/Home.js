@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import Loader from '../components/Loader'
 import Folder from '../components/Folder'
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
@@ -70,27 +69,36 @@ class Home extends Component {
 	componentDidMount() {
 		this.setState({
 			loaded: true
-		})
+		});
+		document.addEventListener('click', this.handleClickOutside, false);
+	}
+	componentWillMount() {
+
+	}
+	handleClickOutside = e => {
+		if (e.target.className !== 'folder-checkbox') {
+			this.setState({
+				details: ''
+			});
+			let eventNodes = document.getElementsByClassName('folder-checkbox');
+			Object.keys(eventNodes).forEach(function (key) {
+				eventNodes[key].checked = false;
+			});
+		}
+	};
+	componentWillUnmount() {
+		document.removeEventListener('click', this.handleClick, false);
 	}
 	handleClick = (e, data) => {
 		console.log(data.foo);
 	};
-	showDetails(folder, event) {
-
-		const domNode = ReactDOM.findDOMNode(this);
-
-		if (!domNode || !domNode.contains(event.target)) {
-			console.log('uncechk');
-		} else {
-			console.log('lol');
-			this.setState({
-				details: folder.folder.name
-			})
-		}
+	showDetails(folder) {
+		this.setState({
+			details: folder.folder.name
+		})
 
 	};
 	detailsToggle = () => {
-		console.log('lol2');
 		if (this.state.details !== '') {
 			return <div>
 				<p>Details</p>
@@ -98,7 +106,6 @@ class Home extends Component {
 			</div>
 		}
 	};
-
 	render() {
 		if (this.state.loaded) {
 			return (
@@ -107,9 +114,9 @@ class Home extends Component {
 						<div className="border-container">
 							<span>
 								{this.state.disc.map((folder, index) => {
-									return <div key={index} className="folder-container-wrapper" onClick={this.showDetails.bind(this, folder)}>
+									return <div key={index} className="folder-container-wrapper"  onClick={this.showDetails.bind(this, folder)}>
 										<ContextMenuTrigger id={index + 'folder'}>
-											<Folder name={folder.folder.name} links={folder._links} id={index + 'folder'}/>
+											<Folder name={folder.folder.name} links={folder._links} id={index + 'folder'} />
 										</ContextMenuTrigger>
 										<ContextMenu id={index + 'folder'}>
 											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>

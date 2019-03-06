@@ -58,21 +58,26 @@
 .folder-container:hover i, .folder-container:active i, .folder-container:focus i {
 	color: var(--accent);
 }
-.radio{
+.folder-container:hover p, .folder-container:active p, .folder-container:focus p {
+	color: var(--accent);
+}
+.folder-checkbox-label{
 	display:inline-block;
 	width: 100%;
 	height: 100%;
 	cursor:pointer
 }
-input[type=radio]{
+
+input[type=checkbox]{
 	display:none;
 }
-input[type=radio]:checked + .radio{
+input[type=checkbox]:checked + .folder-checkbox-label{
 	color: var(--accent);
 }
 
 
 .folder-container p {
+	transition: 0.2s color ease-out;
 	font-size: 13px;
 	margin: 0;
 }
