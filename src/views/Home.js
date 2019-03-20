@@ -1,79 +1,88 @@
+import axios from 'axios';
 import React, { Component } from 'react';
 import Loader from '../components/Loader'
-import Folder from '../components/Folder'
+import Folder from '../components/Folder';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
-const disc = {
-	_embedded: {
-		folderResourceList: [
-			{
-				_links: {
-					self: {
-						href: "http://localhost:8080/api/folders/768b6bce-da74-4355-817b-615880976c39"
-					},
-					children: {
-						href: "http://localhost:8080/api/folders/root/children"
-					},
-					delete: {
-						href: "http://localhost:8080/api/folders/768b6bce-da74-4355-817b-615880976c39"
-					}
-				},
-				folder: {
-					name: "childXrxexnX"
-				}
-			},
-			{
-				_links: {
-					self: {
-						href: "http://localhost:8080/api/folders/1b044aa7-8e64-421e-89ac-d1f420c5b063"
-					},
-					children: {
-						href: "http://localhost:8080/api/folders/root/children"
-					},
-					delete: {
-						href: "http://localhost:8080/api/folders/1b044aa7-8e64-421e-89ac-d1f420c5b063"
-					}
-				},
-				folder: {
-					name: "childXrxexnX"
-				}
-			},
-			{
-				_links: {
-					self: {
-						href: "http://localhost:8080/api/folders/340fbf2f-270c-4245-b6b4-f01fbf54c882"
-					},
-					children: {
-						href: "http://localhost:8080/api/folders/root/children"
-					},
-					delete: {
-						href: "http://localhost:8080/api/folders/340fbf2f-270c-4245-b6b4-f01fbf54c882"
-					}
-				},
-				folder: {
-					name: "blablabla"
-				}
-			}
-		]
-	}
-};
+// const disc = {
+// 	_embedded: {
+// 		folderResourceList: [
+// 			{
+// 				_links: {
+// 					self: {
+// 						href: "http://localhost:8080/api/folders/768b6bce-da74-4355-817b-615880976c39"
+// 					},
+// 					children: {
+// 						href: "http://localhost:8080/api/folders/root/children"
+// 					},
+// 					delete: {
+// 						href: "http://localhost:8080/api/folders/768b6bce-da74-4355-817b-615880976c39"
+// 					}
+// 				},
+// 				folder: {
+// 					name: "childXrxexnX"
+// 				}
+// 			},
+// 			{
+// 				_links: {
+// 					self: {
+// 						href: "http://localhost:8080/api/folders/1b044aa7-8e64-421e-89ac-d1f420c5b063"
+// 					},
+// 					children: {
+// 						href: "http://localhost:8080/api/folders/root/children"
+// 					},
+// 					delete: {
+// 						href: "http://localhost:8080/api/folders/1b044aa7-8e64-421e-89ac-d1f420c5b063"
+// 					}
+// 				},
+// 				folder: {
+// 					name: "childXrxexnX"
+// 				}
+// 			},
+// 			{
+// 				_links: {
+// 					self: {
+// 						href: "http://localhost:8080/api/folders/340fbf2f-270c-4245-b6b4-f01fbf54c882"
+// 					},
+// 					children: {
+// 						href: "http://localhost:8080/api/folders/root/children"
+// 					},
+// 					delete: {
+// 						href: "http://localhost:8080/api/folders/340fbf2f-270c-4245-b6b4-f01fbf54c882"
+// 					}
+// 				},
+// 				folder: {
+// 					name: "blablabla"
+// 				}
+// 			}
+// 		]
+// 	}
+// };
 class Home extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			loaded: false,
-			disc: disc._embedded.folderResourceList,
+			disc: {},
 			details: ''
 		};
 	}
 	componentDidMount() {
-		this.setState({
-			loaded: true
+		axios.get('http://localhost:8080/api/folders/root').then((r) => {
+			console.log(r);
+			this.setState({
+				loaded: true,
+				disc: r
+			});
+		}).catch((e) => {
+			console.log(e);
+		}).then(() => {
+			this.setState({
+				loaded: true
+			});
 		});
-		document.addEventListener('click', this.handleClickOutside, false);
-	}
-	componentWillMount() {
 
+		document.addEventListener('click', this.handleClickOutside, false);
 	}
 	handleClickOutside = e => {
 		if (e.target.className !== 'folder-checkbox') {
@@ -100,9 +109,10 @@ class Home extends Component {
 	};
 	detailsToggle = () => {
 		if (this.state.details !== '') {
-			return <div>
-				<p>Details</p>
-				<p>Name: {this.state.details}</p>
+			return <div className="details-container">
+				<h4>Name: {this.state.details}</h4>
+				<h4>Weight: {this.state.details}</h4>
+				<h4>Empty: {this.state.details}</h4>
 			</div>
 		}
 	};
@@ -152,10 +162,10 @@ class Home extends Component {
 						</div>
 					</div>
 					<div className="aside-container">
-						<p><i className="material-icons">
+						<p className="button"><i className="material-icons">
 							add
 						</i>Create new folder</p>
-						<p><i className="material-icons">
+						<p className="button"><i className="material-icons">
 							add
 						</i>Add new file</p>
 						{this.detailsToggle()}
