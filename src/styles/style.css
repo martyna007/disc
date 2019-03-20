@@ -2,10 +2,12 @@
 	--borders: #585a83;
 	--text: #eee;
 	--bg-primary: #eee;
-	--container-bg: rgba(0,0,0, 0.6);
+	--container-bg: rgba(0,0,0, 0.8);
 	--accent: #bc45bc;
 }
-
+h1, h2, h3, h4, h5, h6 {
+	font-weight: normal;
+}
 .lds-ring {
 	display: inline-block;
 	position: relative;
@@ -179,7 +181,7 @@ body p {
 	font-size: 18px;
 }
 .container-wrapper {
-	background-image: url('../images/bg7.jpg');
+	background-image: url('../images/bg4.jpg');
 	background-size: cover;
 }
 .container {
@@ -207,21 +209,25 @@ body p {
 	padding: 20px;
 
 }
-.aside-container p {
+.aside-container .button {
 	font-size: 13px;
 	display: inline-flex;
 	padding: 12px;
 	align-items: center;
 	cursor: pointer;
 	border-radius: 6px;
-	border: 1px solid #000;
 	margin: 6px 0;
 	transition: 0.2s background-color ease-out;
 }
-.aside-container p:hover {
+.aside-container p.button:hover {
 	background-color: var(--accent);
 
 }
 .material-icons {
 	margin-right: 6px;
+}
+.details-container {
+	border-top: 1px solid #171717;
+	margin-top: 15px;
+	padding-top: 10px;
 }
