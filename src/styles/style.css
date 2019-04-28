@@ -10,9 +10,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 .lds-ring {
 	display: inline-block;
-	position: relative;
+	position: absolute;
 	width: 64px;
 	height: 64px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%)
 }
 .lds-ring div {
 	box-sizing: border-box;
@@ -209,8 +212,8 @@ body p {
 	padding: 20px;
 
 }
-.aside-container .button {
-	font-size: 13px;
+.aside-container .button, .warning-popup .button {
+	font-size: 14px;
 	display: inline-flex;
 	padding: 12px;
 	align-items: center;
@@ -219,7 +222,7 @@ body p {
 	margin: 6px 0;
 	transition: 0.2s background-color ease-out;
 }
-.aside-container p.button:hover {
+.aside-container p.button:hover, .warning-popup p.button:hover {
 	background-color: var(--accent);
 
 }
@@ -230,4 +233,33 @@ body p {
 	border-top: 1px solid #171717;
 	margin-top: 15px;
 	padding-top: 10px;
+}
+.warning-popup {
+	position: absolute;
+	max-width: 250px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+	background-color: rgba(0,0,0,0.5);
+	border: 1px solid var(--borders);
+	padding: 20px 40px;
+	border-radius: 8px;
+}
+.warning-popup p {
+	font-size: 15px
+}
+input {
+	background-color: transparent;
+	font-size: 16px;
+	outline: none;
+	border: none;
+	padding: 10px;
+	border-bottom: 1px solid var(--accent);
+	color: var(--accent);
+	margin-bottom: 20px;
+}
+.breadcrumbs {
+	max-width: 965px;
+	font-size: 20px;
+	margin: 0 auto;
 }

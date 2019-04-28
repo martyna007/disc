@@ -4,78 +4,35 @@ import Loader from '../components/Loader'
 import Folder from '../components/Folder';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
-// const disc = {
-// 	_embedded: {
-// 		folderResourceList: [
-// 			{
-// 				_links: {
-// 					self: {
-// 						href: "http://localhost:8080/api/folders/768b6bce-da74-4355-817b-615880976c39"
-// 					},
-// 					children: {
-// 						href: "http://localhost:8080/api/folders/root/children"
-// 					},
-// 					delete: {
-// 						href: "http://localhost:8080/api/folders/768b6bce-da74-4355-817b-615880976c39"
-// 					}
-// 				},
-// 				folder: {
-// 					name: "childXrxexnX"
-// 				}
-// 			},
-// 			{
-// 				_links: {
-// 					self: {
-// 						href: "http://localhost:8080/api/folders/1b044aa7-8e64-421e-89ac-d1f420c5b063"
-// 					},
-// 					children: {
-// 						href: "http://localhost:8080/api/folders/root/children"
-// 					},
-// 					delete: {
-// 						href: "http://localhost:8080/api/folders/1b044aa7-8e64-421e-89ac-d1f420c5b063"
-// 					}
-// 				},
-// 				folder: {
-// 					name: "childXrxexnX"
-// 				}
-// 			},
-// 			{
-// 				_links: {
-// 					self: {
-// 						href: "http://localhost:8080/api/folders/340fbf2f-270c-4245-b6b4-f01fbf54c882"
-// 					},
-// 					children: {
-// 						href: "http://localhost:8080/api/folders/root/children"
-// 					},
-// 					delete: {
-// 						href: "http://localhost:8080/api/folders/340fbf2f-270c-4245-b6b4-f01fbf54c882"
-// 					}
-// 				},
-// 				folder: {
-// 					name: "blablabla"
-// 				}
-// 			}
-// 		]
-// 	}
-// };
 class Home extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			loaded: false,
-			disc: {},
-			details: ''
+			details: '',
+			parent: 'http://mydisc.xyz:8080/api/folders/root',
+			parentName: '',
+			children: [],
+			popupType: '',
+			popup: false,
+			currentItem: {},
+			currentId: null,
+			currentName: 'root',
+			nameValue: ''
 		};
+		this.handleChange = this.handleChange.bind(this);
 	}
 	componentDidMount() {
-		axios.get('http://localhost:8080/api/folders/root').then((r) => {
-			console.log(r);
-			this.setState({
-				loaded: true,
-				disc: r
+		axios.get(this.state.parent).then((r) => {
+			axios.get(r.data._links.children.href).then((r2) => {
+				this.setState({
+					loaded: true,
+					children: r2.data._embedded.folderResourceList
+				});
+
 			});
 		}).catch((e) => {
-			console.log(e);
+
 		}).then(() => {
 			this.setState({
 				loaded: true
@@ -98,9 +55,91 @@ class Home extends Component {
 	componentWillUnmount() {
 		document.removeEventListener('click', this.handleClick, false);
 	}
-	handleClick = (e, data) => {
-		console.log(data.foo);
+	handleClick = (folder, e, data) => {
+		if (typeof folder._links.self.href.split('http://mydisc.xyz:8080/api/folders/')[1] !== 'undefined') {
+			this.setState({
+				currentItem: folder,
+				currentId: folder._links.self.href.split('http://mydisc.xyz:8080/api/folders/')[1]
+			});
+		} else {
+			this.setState({
+				currentItem: folder,
+				currentId: null
+			});
+		}
+
+		switch (data.action) {
+			case 'delete': {
+				this.setState({
+					popupType: 'delete',
+					popup: true
+				});
+				break;
+			}
+			case 'open': {
+				this.setState({
+					loaded: false
+				});
+				axios.get(folder._links.children.href).then((r) => {
+					if (Object.getOwnPropertyNames(r.data).length !== 0) {
+						this.setState({
+							loaded: true,
+							details: '',
+							parent: folder._links.self.href,
+							children: r.data._embedded.folderResourceList,
+							popupType: '',
+							popup: false,
+							currentItem: {},
+							nameValue: ''
+						});
+					} else {
+						this.setState({
+							loaded: true,
+							details: '',
+							parent: folder._links.self.href,
+							children: [],
+							popupType: '',
+							popup: false,
+							currentItem: {},
+							nameValue: ''
+						});
+					}
+				}).catch((e) => {
+
+				}).then(() => {
+					this.setState({
+						loaded: true
+					});
+				});
+				break;
+			}
+			case 'rename': {
+				// axios.get(folder._links.delete.href).then((r) => {
+				//
+				// }).catch((e) => {
+				//
+				// }).then(() => {
+				//
+				// });
+				break;
+			}
+			case 'details': {
+				// axios.get(folder._links.delete.href).then((r) => {
+				//
+				// }).catch((e) => {
+				//
+				// }).then(() => {
+				//
+				// });
+				break;
+			}
+			default: {
+
+			}
+		}
 	};
+
+
 	showDetails(folder) {
 		this.setState({
 			details: folder.folder.name
@@ -116,40 +155,137 @@ class Home extends Component {
 			</div>
 		}
 	};
+
+	popupToggle = () => {
+		if (this.state.popup) {
+			switch (this.state.popupType) {
+				case 'delete': {
+					return <div className="warning-popup">
+						<h4>Are you sure?</h4>
+						<p>Do you really want to delete this item? There is no turning back</p>
+						<p className="button" onClick={this.deleteAction}>Delete</p>
+						<p className="button" onClick={this.cancelAction}>Cancel</p>
+					</div>
+				}
+				case 'create': {
+					return <div className="warning-popup">
+						<h4>New folder</h4>
+						<p>Enter name below</p>
+						<input type="text" value={this.state.nameValue} onChange={this.handleChange}/>
+						<br/>
+						<p className="button" onClick={this.createAction}>Create</p>
+						<p className="button" onClick={this.cancelAction}>Cancel</p>
+					</div>
+				}
+				case 'success': {
+					return <div className="warning-popup">
+						<h4>Success</h4>
+						<p>Action completed successfully</p>
+						<p className="button" onClick={this.cancelAction}>OK</p>
+					</div>
+				}
+				case 'error': {
+					return <div className="warning-popup">
+						<h4>Error</h4>
+						<p>An error occured, try again</p>
+						<p className="button" onClick={this.cancelAction}>OK</p>
+					</div>
+				}
+				default: {
+
+				}
+			}
+		}
+	};
+	handleChange(event) {
+		this.setState({
+			nameValue: event.target.value
+		});
+	}
+
+	cancelAction = () => {
+		this.setState({
+			popup: false
+		});
+		this.componentDidMount();
+	};
+	deleteAction = () => {
+		let item = this.state.currentItem;
+		axios.delete(item._links.delete.href).then((r) => {
+			this.setState({
+				popup: true,
+				popupType: 'success'
+			});
+		}).catch((e) => {
+			this.setState({
+				popup: true,
+				popupType: 'error'
+			})
+		}).then(() => {
+
+		});
+	};
+	createAction = () => {
+		axios.post('http://mydisc.xyz:8080/api/folders', {name: this.state.nameValue, parentId: this.state.currentId}).then((r) => {
+			this.setState({
+				popup: true,
+				popupType: 'success'
+			});
+
+		}).catch((e) => {
+			this.setState({
+				popup: true,
+				popupType: 'error'
+			})
+		}).then(() => {
+
+		});
+	};
+	createItem = () => {
+		this.setState({
+			popup: true,
+			popupType: 'create'
+		});
+	};
+
 	render() {
-		if (this.state.loaded) {
+		if (this.state.loaded && this.state.children.length) {
 			return (
-				<div className="container">
-					<div className="main-container">
-						<div className="border-container">
+				<div>
+					<div className="breadcrumbs">
+						<h2>{this.state.parentName + '/' + this.state.currentName}</h2>
+					</div>
+					<div className="container">
+						{this.popupToggle()}
+						<div className="main-container">
+							<div className="border-container">
 							<span>
-								{this.state.disc.map((folder, index) => {
+								{this.state.children.map((folder, index) => {
 									return <div key={index} className="folder-container-wrapper"  onClick={this.showDetails.bind(this, folder)}>
 										<ContextMenuTrigger id={index + 'folder'}>
 											<Folder name={folder.folder.name} links={folder._links} id={index + 'folder'} />
 										</ContextMenuTrigger>
 										<ContextMenu id={index + 'folder'}>
-											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+											<MenuItem data={{action: 'open'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">subdirectory_arrow_right</i>Open
 												</span>
-
 											</MenuItem>
 											<MenuItem divider />
-											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+											<MenuItem data={{action: 'rename'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">edit</i>Change name
 												</span>
 
 											</MenuItem>
-											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">subject</i>Details
 												</span>
 
 											</MenuItem>
 											<MenuItem divider />
-											<MenuItem data={{foo: 'bar'}} onClick={this.handleClick}>
+											<MenuItem data={{action: 'delete'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">delete</i>Delete
 												</span>
@@ -159,19 +295,49 @@ class Home extends Component {
 									</div>
 								})}
 							</span>
+							</div>
 						</div>
-					</div>
-					<div className="aside-container">
-						<p className="button"><i className="material-icons">
-							add
-						</i>Create new folder</p>
-						<p className="button"><i className="material-icons">
-							add
-						</i>Add new file</p>
-						{this.detailsToggle()}
+						<div className="aside-container">
+							<p className="button" onClick={this.createItem}><i className="material-icons">
+								add
+							</i>Create new folder</p>
+							<p className="button"><i className="material-icons">
+								add
+							</i>Add new file</p>
+							{this.detailsToggle()}
+
+						</div>
 
 					</div>
+				</div>
+			);
+		} else if (this.state.loaded) {
+			return (
+				<div>
+					<div className="breadcrumbs">
+						<h2>{this.state.parentName + '/' + this.state.currentName}</h2>
+					</div>
+					<div className="container">
 
+						{this.popupToggle()}
+						<div className="main-container">
+							<div className="border-container">
+							<span>
+							</span>
+							</div>
+						</div>
+						<div className="aside-container">
+							<p className="button" onClick={this.createItem}><i className="material-icons">
+								add
+							</i>Create new folder</p>
+							<p className="button"><i className="material-icons">
+								add
+							</i>Add new file</p>
+							{this.detailsToggle()}
+
+						</div>
+
+					</div>
 				</div>
 			);
 		} else {

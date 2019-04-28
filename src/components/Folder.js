@@ -25,13 +25,10 @@ class Folder extends Component {
 		});
 	};
 	contextMenu(id, e) {
-		console.log(e);
-		console.log(id);
 		if (e.type === 'contextmenu') {
 			e.preventDefault();
 			let eventNodes = document.getElementsByClassName('folder-checkbox');
 			Object.keys(eventNodes).forEach(function (key) {
-				console.log(eventNodes[key].id);
 				if (eventNodes[key].id === id) {
 					document.getElementById(id).checked = true;
 				} else {
