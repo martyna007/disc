@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { Component } from 'react';
 import Loader from '../components/Loader'
 import Folder from '../components/Folder';
+import Popup from '../components/Popup';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 class Home extends Component {
@@ -9,21 +10,25 @@ class Home extends Component {
 		super(props);
 		this.state = {
 			loaded: false,
-			details: '',
-			parent: 'http://mydisc.xyz:8080/api/folders/root',
-			parentName: '',
-			children: [],
+			details: {},
 			popupType: '',
 			popup: false,
-			currentItem: {},
-			currentId: null,
-			currentName: 'root',
-			nameValue: ''
+			parentItem: {
+				id: '',
+				name: ''
+			},
+			parentLink: '',
+			children: [],
+			currentItem: {
+				id: 'root',
+				name: 'root'
+			},
 		};
-		this.handleChange = this.handleChange.bind(this);
+		//this.handleChange = this.handleChange.bind(this);
+		this.getPopupAction = this.getPopupAction.bind(this);
 	}
 	componentDidMount() {
-		axios.get(this.state.parent).then((r) => {
+		axios.get('http://mydisc.xyz/api/folders/' + this.state.currentItem.id).then((r) => {
 			axios.get(r.data._links.children.href).then((r2) => {
 				this.setState({
 					loaded: true,
@@ -41,6 +46,7 @@ class Home extends Component {
 
 		document.addEventListener('click', this.handleClickOutside, false);
 	}
+
 	handleClickOutside = e => {
 		if (e.target.className !== 'folder-checkbox') {
 			this.setState({
@@ -56,18 +62,9 @@ class Home extends Component {
 		document.removeEventListener('click', this.handleClick, false);
 	}
 	handleClick = (folder, e, data) => {
-		if (typeof folder._links.self.href.split('http://mydisc.xyz:8080/api/folders/')[1] !== 'undefined') {
-			this.setState({
-				currentItem: folder,
-				currentId: folder._links.self.href.split('http://mydisc.xyz:8080/api/folders/')[1]
-			});
-		} else {
-			this.setState({
-				currentItem: folder,
-				currentId: null
-			});
-		}
-
+		this.setState({
+			currentItem: folder
+		});
 		switch (data.action) {
 			case 'delete': {
 				this.setState({
@@ -80,37 +77,7 @@ class Home extends Component {
 				this.setState({
 					loaded: false
 				});
-				axios.get(folder._links.children.href).then((r) => {
-					if (Object.getOwnPropertyNames(r.data).length !== 0) {
-						this.setState({
-							loaded: true,
-							details: '',
-							parent: folder._links.self.href,
-							children: r.data._embedded.folderResourceList,
-							popupType: '',
-							popup: false,
-							currentItem: {},
-							nameValue: ''
-						});
-					} else {
-						this.setState({
-							loaded: true,
-							details: '',
-							parent: folder._links.self.href,
-							children: [],
-							popupType: '',
-							popup: false,
-							currentItem: {},
-							nameValue: ''
-						});
-					}
-				}).catch((e) => {
-
-				}).then(() => {
-					this.setState({
-						loaded: true
-					});
-				});
+				this.getChildItem(folder);
 				break;
 			}
 			case 'rename': {
@@ -138,114 +105,111 @@ class Home extends Component {
 			}
 		}
 	};
+	getChildItem = item => {
+		axios.get(item._links.children.href).then((r) => {
+			if (Object.getOwnPropertyNames(r.data).length !== 0) {
+				this.setState({
+					parentLink: item._links.parent.href,
+					children: r.data._embedded.folderResourceList,
+					popupType: '',
+					popup: false,
+					detailsLink: item._links.self.href
+				});
+			} else {
+				this.setState({
+					parentLink: item._links.parent.href,
+					children: [],
+					popupType: '',
+					popup: false,
+					detailsLink: item._links.self.href
+				});
+			}
+			console.log(this.state.parentLink);
+			console.log(this.state.currentItem);
+			this.getDetailsOfItem(item._links.self.href);
 
+		}).catch((e) => {
+
+		}).then(() => {
+			this.setState({
+				loaded: true
+			});
+		});
+	};
+	getDetailsOfItem = link => {
+		axios.get(link).then((r) => {
+			console.log(r);
+			this.setState({
+				loaded: true,
+				details: r.data.folder
+			});
+			console.log(this.state.details);
+
+		}).catch((e) => {
+
+		}).then(() => {
+			this.setState({
+				loaded: true
+			});
+		});
+	};
 
 	showDetails(folder) {
 		this.setState({
-			details: folder.folder.name
+			details: folder.folder
 		})
 
 	};
 	detailsToggle = () => {
-		if (this.state.details !== '') {
+		if (this.state.details) {
 			return <div className="details-container">
-				<h4>Name: {this.state.details}</h4>
-				<h4>Weight: {this.state.details}</h4>
-				<h4>Empty: {this.state.details}</h4>
+				<h4>Name: {this.state.details.name}</h4>
+				<h4>Created: {this.state.details.created_at}</h4>
+				<h4>Modified: {this.state.details.updated_at}</h4>
 			</div>
 		}
 	};
 
-	popupToggle = () => {
-		if (this.state.popup) {
-			switch (this.state.popupType) {
-				case 'delete': {
-					return <div className="warning-popup">
-						<h4>Are you sure?</h4>
-						<p>Do you really want to delete this item? There is no turning back</p>
-						<p className="button" onClick={this.deleteAction}>Delete</p>
-						<p className="button" onClick={this.cancelAction}>Cancel</p>
-					</div>
-				}
-				case 'create': {
-					return <div className="warning-popup">
-						<h4>New folder</h4>
-						<p>Enter name below</p>
-						<input type="text" value={this.state.nameValue} onChange={this.handleChange}/>
-						<br/>
-						<p className="button" onClick={this.createAction}>Create</p>
-						<p className="button" onClick={this.cancelAction}>Cancel</p>
-					</div>
-				}
-				case 'success': {
-					return <div className="warning-popup">
-						<h4>Success</h4>
-						<p>Action completed successfully</p>
-						<p className="button" onClick={this.cancelAction}>OK</p>
-					</div>
-				}
-				case 'error': {
-					return <div className="warning-popup">
-						<h4>Error</h4>
-						<p>An error occured, try again</p>
-						<p className="button" onClick={this.cancelAction}>OK</p>
-					</div>
-				}
-				default: {
+	getPopupAction = (action) => {
+		switch (action) {
+			case 'success': {
+				this.setState({
+					popup: true,
+					popupType: 'success'
+				});
+				break;
+			}
+			case 'error': {
+				this.setState({
+					popup: true,
+					popupType: 'error'
+				});
+				break;
+			}
+			case 'cancel': {
+				this.setState({
+					popup: false
+				});
+				// this.componentDidMount();
+				break;
+			}
+			default: {
 
-				}
 			}
 		}
 	};
-	handleChange(event) {
-		this.setState({
-			nameValue: event.target.value
-		});
-	}
 
-	cancelAction = () => {
-		this.setState({
-			popup: false
-		});
-		this.componentDidMount();
-	};
-	deleteAction = () => {
-		let item = this.state.currentItem;
-		axios.delete(item._links.delete.href).then((r) => {
-			this.setState({
-				popup: true,
-				popupType: 'success'
-			});
-		}).catch((e) => {
-			this.setState({
-				popup: true,
-				popupType: 'error'
-			})
-		}).then(() => {
-
-		});
-	};
-	createAction = () => {
-		axios.post('http://mydisc.xyz:8080/api/folders', {name: this.state.nameValue, parentId: this.state.currentId}).then((r) => {
-			this.setState({
-				popup: true,
-				popupType: 'success'
-			});
-
-		}).catch((e) => {
-			this.setState({
-				popup: true,
-				popupType: 'error'
-			})
-		}).then(() => {
-
-		});
-	};
 	createItem = () => {
 		this.setState({
 			popup: true,
 			popupType: 'create'
 		});
+	};
+	showPopup = () => {
+		if (this.state.popup) {
+			return <Popup type={this.state.popupType} popupAction={this.getPopupAction} parentId={this.state.currentId} currentItem={this.state.currentItem}/>
+
+		}
 	};
 
 	render() {
@@ -253,10 +217,10 @@ class Home extends Component {
 			return (
 				<div>
 					<div className="breadcrumbs">
-						<h2>{this.state.parentName + '/' + this.state.currentName}</h2>
+						<h2>{'/' + this.state.currentItem.name}</h2>
 					</div>
 					<div className="container">
-						{this.popupToggle()}
+						{this.showPopup()}
 						<div className="main-container">
 							<div className="border-container">
 							<span>
@@ -315,11 +279,10 @@ class Home extends Component {
 			return (
 				<div>
 					<div className="breadcrumbs">
-						<h2>{this.state.parentName + '/' + this.state.currentName}</h2>
+						<h2>{'/' + this.state.currentItem.name}</h2>
 					</div>
 					<div className="container">
-
-						{this.popupToggle()}
+						{this.showPopup()}
 						<div className="main-container">
 							<div className="border-container">
 							<span>
