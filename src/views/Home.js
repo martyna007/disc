@@ -5,6 +5,8 @@ import Folder from '../components/Folder';
 import Popup from '../components/Popup';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
+const api = 'http://mydisc.xyz/api/folders/';
+
 class Home extends Component {
 	constructor(props) {
 		super(props);
@@ -13,44 +15,43 @@ class Home extends Component {
 			details: {},
 			popupType: '',
 			popup: false,
-			parentItem: {
-				id: '',
-				name: ''
-			},
-			parentLink: '',
-			children: [],
-			currentItem: {
-				id: 'root',
-				name: 'root'
-			},
+			folderId: 'root',
+			folderChildren: [],
+			folderData: {},
+			selectedItem: {},
+			selectedItemDetails: {}
 		};
 		//this.handleChange = this.handleChange.bind(this);
 		this.getPopupAction = this.getPopupAction.bind(this);
 	}
 	componentDidMount() {
-		axios.get('http://mydisc.xyz/api/folders/' + this.state.currentItem.id).then((r) => {
-			axios.get(r.data._links.children.href).then((r2) => {
+		axios.get(api + this.state.folderId).then((r) => {
+			axios.get(api + this.state.folderId + '/children').then((r2) => {
 				this.setState({
 					loaded: true,
-					children: r2.data._embedded.folderResourceList
+					folderData: r.data,
+					folderChildren: r2.data._embedded.folderResourceList,
+					selectedItem: {},
+					selectedItemDetails: {}
 				});
-
 			});
 		}).catch((e) => {
 
 		}).then(() => {
-			this.setState({
-				loaded: true
-			});
+
 		});
 
 		document.addEventListener('click', this.handleClickOutside, false);
 	}
+	componentWillUnmount() {
+		document.removeEventListener('click', this.handleClick, false);
+	}
 
+	//click outside context menu
 	handleClickOutside = e => {
 		if (e.target.className !== 'folder-checkbox') {
 			this.setState({
-				details: ''
+				selectedItemDetails: {}
 			});
 			let eventNodes = document.getElementsByClassName('folder-checkbox');
 			Object.keys(eventNodes).forEach(function (key) {
@@ -58,12 +59,12 @@ class Home extends Component {
 			});
 		}
 	};
-	componentWillUnmount() {
-		document.removeEventListener('click', this.handleClick, false);
-	}
+
+	//context menu click
 	handleClick = (folder, e, data) => {
 		this.setState({
-			currentItem: folder
+			selectedItem: folder,
+			selectedItemDetails: {}
 		});
 		switch (data.action) {
 			case 'delete': {
@@ -77,27 +78,17 @@ class Home extends Component {
 				this.setState({
 					loaded: false
 				});
-				this.getChildItem(folder);
+				this.getChildren(folder);
 				break;
 			}
 			case 'rename': {
-				// axios.get(folder._links.delete.href).then((r) => {
-				//
-				// }).catch((e) => {
-				//
-				// }).then(() => {
-				//
-				// });
+				this.setState({
+					popupType: 'rename',
+					popup: true
+				});
 				break;
 			}
 			case 'details': {
-				// axios.get(folder._links.delete.href).then((r) => {
-				//
-				// }).catch((e) => {
-				//
-				// }).then(() => {
-				//
-				// });
 				break;
 			}
 			default: {
@@ -105,28 +96,19 @@ class Home extends Component {
 			}
 		}
 	};
-	getChildItem = item => {
+	getChildren = item => {
 		axios.get(item._links.children.href).then((r) => {
-			if (Object.getOwnPropertyNames(r.data).length !== 0) {
-				this.setState({
-					parentLink: item._links.parent.href,
-					children: r.data._embedded.folderResourceList,
-					popupType: '',
-					popup: false,
-					detailsLink: item._links.self.href
-				});
-			} else {
-				this.setState({
-					parentLink: item._links.parent.href,
-					children: [],
-					popupType: '',
-					popup: false,
-					detailsLink: item._links.self.href
-				});
-			}
-			console.log(this.state.parentLink);
-			console.log(this.state.currentItem);
-			this.getDetailsOfItem(item._links.self.href);
+			this.setState({
+				loaded: false,
+				details: {},
+				popupType: '',
+				popup: false,
+				folderId: item.folder.id,
+				folderChildren: r.data.length ? r.data._embedded.folderResourceList : [],
+				folderData: item,
+				selectedItem: {},
+				selectedItemDetails: {}
+			});
 
 		}).catch((e) => {
 
@@ -136,14 +118,14 @@ class Home extends Component {
 			});
 		});
 	};
-	getDetailsOfItem = link => {
-		axios.get(link).then((r) => {
-			console.log(r);
+
+	getDetails(folder) {
+		axios.get(folder._links.self.href).then((r) => {
 			this.setState({
 				loaded: true,
-				details: r.data.folder
+				selectedItem: folder,
+				selectedItemDetails: r.data.folder
 			});
-			console.log(this.state.details);
 
 		}).catch((e) => {
 
@@ -152,20 +134,20 @@ class Home extends Component {
 				loaded: true
 			});
 		});
+
 	};
-
-	showDetails(folder) {
-		this.setState({
-			details: folder.folder
-		})
-
+	convertISO = date => {
+		let day = date.split('T')[0];
+		let time = date.split('T')[1];
+		time = time.split('+')[0];
+		return day + ' ' + time.slice(0, 5);
 	};
 	detailsToggle = () => {
-		if (this.state.details) {
+		if (Object.getOwnPropertyNames(this.state.selectedItemDetails).length) {
 			return <div className="details-container">
-				<h4>Name: {this.state.details.name}</h4>
-				<h4>Created: {this.state.details.created_at}</h4>
-				<h4>Modified: {this.state.details.updated_at}</h4>
+				<h4>Name: {this.state.selectedItemDetails.name}</h4>
+				<h4>Created: {this.convertISO(this.state.selectedItemDetails.created_at)}</h4>
+				<h4>Modified: {this.convertISO(this.state.selectedItemDetails.updated_at)}</h4>
 			</div>
 		}
 	};
@@ -177,6 +159,7 @@ class Home extends Component {
 					popup: true,
 					popupType: 'success'
 				});
+				this.componentDidMount();
 				break;
 			}
 			case 'error': {
@@ -190,7 +173,6 @@ class Home extends Component {
 				this.setState({
 					popup: false
 				});
-				// this.componentDidMount();
 				break;
 			}
 			default: {
@@ -207,25 +189,25 @@ class Home extends Component {
 	};
 	showPopup = () => {
 		if (this.state.popup) {
-			return <Popup type={this.state.popupType} popupAction={this.getPopupAction} parentId={this.state.currentId} currentItem={this.state.currentItem}/>
+			return <Popup type={this.state.popupType} popupAction={this.getPopupAction} parent={this.state.folderData} selectedItem={this.state.selectedItem}/>
 
 		}
 	};
 
 	render() {
-		if (this.state.loaded && this.state.children.length) {
+		if (this.state.loaded && this.state.folderChildren.length) {
 			return (
 				<div>
 					<div className="breadcrumbs">
-						<h2>{'/' + this.state.currentItem.name}</h2>
+						<h2>{'/' + this.state.folderData.folder.name}</h2>
 					</div>
 					<div className="container">
 						{this.showPopup()}
 						<div className="main-container">
 							<div className="border-container">
 							<span>
-								{this.state.children.map((folder, index) => {
-									return <div key={index} className="folder-container-wrapper"  onClick={this.showDetails.bind(this, folder)}>
+								{this.state.folderChildren.map((folder, index) => {
+									return <div key={index} className="folder-container-wrapper" onClick={this.getDetails.bind(this, folder)}>
 										<ContextMenuTrigger id={index + 'folder'}>
 											<Folder name={folder.folder.name} links={folder._links} id={index + 'folder'} />
 										</ContextMenuTrigger>
@@ -269,9 +251,7 @@ class Home extends Component {
 								add
 							</i>Add new file</p>
 							{this.detailsToggle()}
-
 						</div>
-
 					</div>
 				</div>
 			);
@@ -279,7 +259,7 @@ class Home extends Component {
 			return (
 				<div>
 					<div className="breadcrumbs">
-						<h2>{'/' + this.state.currentItem.name}</h2>
+						<h2>{'/' + this.state.folderData.folder.name}</h2>
 					</div>
 					<div className="container">
 						{this.showPopup()}
@@ -299,14 +279,13 @@ class Home extends Component {
 							{this.detailsToggle()}
 
 						</div>
-
 					</div>
 				</div>
 			);
 		} else {
 			return <div>
-					<Loader/>
-				</div>
+				<Loader/>
+			</div>
 		}
 
 	}

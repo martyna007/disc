@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from "axios";
+const api = 'http://mydisc.xyz/api/folders/';
 
 class Popup extends Component {
 	constructor(props) {
@@ -8,6 +9,13 @@ class Popup extends Component {
 			nameValue: ''
 		};
 		this.handleChange = this.handleChange.bind(this);
+	}
+	componentDidMount() {
+		if (this.props.type === 'rename') {
+			this.setState({
+				nameValue: this.props.selectedItem.folder.name
+			})
+		}
 	}
 	handleChange(event) {
 		this.setState({
@@ -18,48 +26,6 @@ class Popup extends Component {
 	sendPopupAction(action){
 		this.props.popupAction(action);
 	}
-	action(action) {
-		switch (action) {
-			case 'delete': {
-				let item = this.props.currentItem;
-				axios.delete(item._links.delete.href).then((r) => {
-					this.setState({
-						popup: true,
-						popupType: 'success'
-					});
-					this.sendPopupAction('success')
-
-				}).catch((e) => {
-					this.setState({
-						popup: true,
-						popupType: 'error'
-					});
-					this.sendPopupAction('error')
-				}).then(() => {
-
-				});
-				break;
-			}
-			case 'create': {
-				axios.post('http://mydisc.xyz/api/folders', {name: this.state.nameValue, parentId: this.props.currentId}).then((r) => {
-					this.sendPopupAction('success')
-
-				}).catch((e) => {
-					this.sendPopupAction('error')
-
-				}).then(() => {
-
-				});
-				break;
-			}
-			case 'cancel': {
-				this.sendPopupAction('cancel');
-				break;
-			}
-			default: {
-			}
-		}
-	};
 
 	renderPopup = () => {
 		if (this.props.type) {
@@ -78,10 +44,22 @@ class Popup extends Component {
 					return <div className="warning-popup">
 						<h4>New folder</h4>
 						<p>Enter name below</p>
-						<input type="text" value={this.state.nameValue} onChange={this.handleChange}/>
+						<input type="text" value={this.state.nameValue} onChange={this.handleChange} autoFocus={true}/>
 						<br/>
 						<div className="two-btn-container">
 							<p className="button" onClick={() => this.action('create')}>Create</p>
+							<p className="button" onClick={() => this.action('cancel')}>Cancel</p>
+						</div>
+					</div>
+				}
+				case 'rename': {
+					return <div className="warning-popup">
+						<h4>New folder name</h4>
+						<p>Enter new name below</p>
+						<input type="text" value={this.state.nameValue} onChange={this.handleChange} autoFocus={true}/>
+						<br/>
+						<div className="two-btn-container">
+							<p className="button" onClick={() => this.action('rename')}>Change</p>
 							<p className="button" onClick={() => this.action('cancel')}>Cancel</p>
 						</div>
 					</div>
@@ -106,7 +84,52 @@ class Popup extends Component {
 			}
 		}
 	};
+	action(action) {
+		switch (action) {
+			case 'delete': {
+				let item = this.props.selectedItem;
+				axios.delete(item._links.delete.href).then((r) => {
+					this.sendPopupAction('success')
 
+				}).catch((e) => {
+					this.sendPopupAction('error')
+				}).then(() => {
+
+				});
+				break;
+			}
+			case 'create': {
+				axios.post(api, {name: this.state.nameValue, parentId: this.props.parent.folder.id === 'root' ? null : this.props.parent.folder.id}).then((r) => {
+					this.sendPopupAction('success')
+
+				}).catch((e) => {
+					this.sendPopupAction('error')
+
+				}).then(() => {
+
+				});
+				break;
+			}
+			case 'rename': {
+				let item = this.props.selectedItem;
+				axios.patch(item._links.self.href, {name: this.state.nameValue}).then((r) => {
+					this.sendPopupAction('success')
+
+				}).catch((e) => {
+					this.sendPopupAction('error')
+				}).then(() => {
+
+				});
+				break;
+			}
+			case 'cancel': {
+				this.sendPopupAction('cancel');
+				break;
+			}
+			default: {
+			}
+		}
+	};
 	render() {
 		return <div>
 			{this.renderPopup()}
