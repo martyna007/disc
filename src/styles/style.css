@@ -27,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 	border: 6px solid #343434;
 	border-radius: 50%;
 	animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-	border-color: #343434 transparent transparent transparent;
+	border-color: #fff transparent transparent transparent;
 }
 .lds-ring div:nth-child(1) {
 	animation-delay: -0.45s;
@@ -264,6 +264,21 @@ input {
 	max-width: 965px;
 	font-size: 20px;
 	margin: 0 auto;
+}
+.breadcrumbs h2 {
+	display: inline-block;
+}
+.breadcrumbs i {
+	padding: 4px;
+	margin: 10px;
+	position: relative;
+	top: 2px;
+	cursor: pointer;
+	border-radius: 6px;
+	transition: 0.2s background-color ease-out;
+}
+.breadcrumbs i:hover {
+	background-color: var(--accent);
 }
 .two-btn-container {
 	display: flex;

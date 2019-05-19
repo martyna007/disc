@@ -21,20 +21,11 @@ class Home extends Component {
 			selectedItem: {},
 			selectedItemDetails: {}
 		};
-		//this.handleChange = this.handleChange.bind(this);
 		this.getPopupAction = this.getPopupAction.bind(this);
 	}
 	componentDidMount() {
 		axios.get(api + this.state.folderId).then((r) => {
-			axios.get(api + this.state.folderId + '/children').then((r2) => {
-				this.setState({
-					loaded: true,
-					folderData: r.data,
-					folderChildren: r2.data._embedded.folderResourceList,
-					selectedItem: {},
-					selectedItemDetails: {}
-				});
-			});
+			this.getChildren(r.data);
 		}).catch((e) => {
 
 		}).then(() => {
@@ -98,18 +89,29 @@ class Home extends Component {
 	};
 	getChildren = item => {
 		axios.get(item._links.children.href).then((r) => {
-			this.setState({
-				loaded: false,
-				details: {},
-				popupType: '',
-				popup: false,
-				folderId: item.folder.id,
-				folderChildren: r.data.length ? r.data._embedded.folderResourceList : [],
-				folderData: item,
-				selectedItem: {},
-				selectedItemDetails: {}
-			});
-
+			if (item.folder.id === 'root') {
+				this.setState({
+					loaded: true,
+					popupType: '',
+					popup: false,
+					folderId: item.folder.id,
+					folderChildren: r.data._embedded.folderResourceList.length ? r.data._embedded.folderResourceList : [],
+					folderData: item,
+					selectedItem: {},
+					selectedItemDetails: {}
+				});
+			} else {
+				this.setState({
+					loaded: true,
+					popupType: '',
+					popup: false,
+					folderId: item.folder.id,
+					folderChildren: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.folderResourceList : [],
+					folderData: item,
+					selectedItem: {},
+					selectedItemDetails: {}
+				});
+			}
 		}).catch((e) => {
 
 		}).then(() => {
@@ -118,6 +120,32 @@ class Home extends Component {
 			});
 		});
 	};
+	getParent = () => {
+		axios.get(this.state.folderData._links.parent.href).then((r) => {
+			this.getChildren(r.data);
+		}).catch((e) => {
+
+		}).then(() => {
+			this.setState({
+				loaded: true
+			});
+		});
+	};
+
+	// no button yet
+	getRoot = () => {
+		axios.get(api + 'root').then((r) => {
+			this.getChildren(r.data);
+		}).catch((e) => {
+
+		}).then(() => {
+			this.setState({
+				loaded: true
+			});
+		});
+	};
+
+
 
 	getDetails(folder) {
 		axios.get(folder._links.self.href).then((r) => {
@@ -159,6 +187,7 @@ class Home extends Component {
 					popup: true,
 					popupType: 'success'
 				});
+
 				this.componentDidMount();
 				break;
 			}
@@ -193,13 +222,20 @@ class Home extends Component {
 
 		}
 	};
+	showBackButton = () => {
+		if (this.state.folderId !== 'root') {
+			return <i className="material-icons" onClick={this.getParent}>keyboard_return</i>
+		}
+	};
 
 	render() {
+
 		if (this.state.loaded && this.state.folderChildren.length) {
 			return (
 				<div>
 					<div className="breadcrumbs">
 						<h2>{'/' + this.state.folderData.folder.name}</h2>
+						{this.showBackButton()}
 					</div>
 					<div className="container">
 						{this.showPopup()}
@@ -260,6 +296,7 @@ class Home extends Component {
 				<div>
 					<div className="breadcrumbs">
 						<h2>{'/' + this.state.folderData.folder.name}</h2>
+						{this.showBackButton()}
 					</div>
 					<div className="container">
 						{this.showPopup()}
