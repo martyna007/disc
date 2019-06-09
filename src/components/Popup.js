@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import axios from "axios";
 const api = 'http://mydisc.xyz/api/folders/';
+let apiFile = '';
 
 class Popup extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			nameValue: ''
+			nameValue: '',
+			binary: {},
+			preview: '',
+			file: null
 		};
 		this.handleChange = this.handleChange.bind(this);
 	}
@@ -15,6 +19,28 @@ class Popup extends Component {
 			this.setState({
 				nameValue: this.props.selectedItem.folder.name
 			})
+		}
+		if (this.props.type === 'upload' && this.props.parent.folder.id === 'root') {
+			apiFile = 'http://mydisc.xyz/api/folders/root/files'
+		} else if (this.props.type === 'upload') {
+			apiFile = 'http://mydisc.xyz/api/folders/' + this.props.parent.folder.id + '/files'
+		}
+		if (this.props.type === 'show') {
+			axios.get(this.props.selectedItem._links.download.href).then((r) => {
+				console.log(r.data);
+
+				this.setState({
+					preview: r.data
+				});
+
+				console.log(this.state.preview);
+			}).catch((e) => {
+
+			}).then(() => {
+				this.setState({
+					loaded: true
+				});
+			});
 		}
 	}
 	handleChange(event) {
@@ -26,6 +52,18 @@ class Popup extends Component {
 	sendPopupAction(action){
 		this.props.popupAction(action);
 	}
+	changeFile = event => {
+		let formData = new FormData();
+
+		let file = event.target.files[0];
+
+		formData.append('file', file);
+
+		this.setState({
+			binary: formData,
+			file:  URL.createObjectURL(file)
+		});
+	};
 
 	renderPopup = () => {
 		if (this.props.type) {
@@ -52,6 +90,21 @@ class Popup extends Component {
 						</div>
 					</div>
 				}
+				case 'upload': {
+					return <div className="warning-popup">
+						<h4>New file</h4>
+						<p>Choose file to upload</p>
+						{/*<input type="file" value={this.state.nameValue} onChange={this.handleChange} autoFocus={true}/>*/}
+						<br/>
+
+						<input type="file" onChange={e => this.changeFile(e)}/>
+						<img src={this.state.file} alt="preview"/>
+						<div className="two-btn-container">
+							<p className="button" onClick={() => this.actionUpload()}>Upload</p>
+							<p className="button" onClick={() => this.action('cancel')}>Cancel</p>
+						</div>
+					</div>
+				}
 				case 'rename': {
 					return <div className="warning-popup">
 						<h4>New folder name</h4>
@@ -64,11 +117,22 @@ class Popup extends Component {
 						</div>
 					</div>
 				}
+				case 'show': {
+					return <div className="warning-popup">
+						<h4>File content</h4>
+						<img id="binaryImg" src={'data:image/png;base64, ' + this.state.preview} height="200" alt="Image preview..."/>
+						<br/>
+						<div className="two-btn-container">
+							<p className="button" onClick={() => this.action('download')}>Download</p>
+							<p className="button" onClick={() => this.action('cancel')}>Cancel</p>
+						</div>
+					</div>
+				}
 				case 'success': {
 					return <div className="warning-popup">
 						<h4>Success</h4>
 						<p>Action completed successfully</p>
-						<p className="button" onClick={() => this.action('cancel')}>OK</p>
+						<p className="button" onClick={() => this.action('OK')}>OK</p>
 					</div>
 				}
 				case 'error': {
@@ -84,6 +148,17 @@ class Popup extends Component {
 			}
 		}
 	};
+	actionUpload() {
+		axios.post(apiFile, this.state.binary, { headers: { 'Content-Type': 'multipart/form-data', 'accept': 'application/hal+json' } }).then((r) => {
+			this.sendPopupAction('success')
+
+		}).catch((e) => {
+			this.sendPopupAction('error')
+
+		}).then(() => {
+
+		});
+	}
 	action(action) {
 		switch (action) {
 			case 'delete': {
@@ -124,6 +199,10 @@ class Popup extends Component {
 			}
 			case 'cancel': {
 				this.sendPopupAction('cancel');
+				break;
+			}
+			case 'OK': {
+				this.sendPopupAction('OK');
 				break;
 			}
 			default: {

@@ -49,16 +49,24 @@ h1, h2, h3, h4, h5, h6 {
 .folder-container-wrapper {
 	display: inline-flex;
 }
-.folder-container {
+.file-container-wrapper {
+	position: relative;
+	top: -12px;
+}
+.folder-container, .file-container {
 	flex-direction: column;
 	display: inline-flex;
 	margin: 14px 24px;
 	cursor: pointer;
 }
 .folder-container i {
-	font-size: 56px;
-	margin: 0;
-	transition: 0.2s color ease-out;
+	 font-size: 56px;
+	 margin: 0;
+	 transition: 0.2s color ease-out;
+ }
+i.file-icon {
+	font-size: 40px;
+	margin-bottom: 10px;
 }
 .folder-container:hover i, .folder-container:active i, .folder-container:focus i {
 	color: var(--accent);
@@ -240,14 +248,19 @@ body p {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%,-50%);
-	background-color: rgba(0,0,0,0.5);
+	background-color: rgba(0,0,0,0.8);
 	border: 1px solid var(--borders);
 	padding: 20px 40px;
 	border-radius: 8px;
 	min-width: 286px;
+	z-index: 999;
 }
 .warning-popup p {
 	font-size: 15px
+}
+.warning-popup img {
+	max-width: 285px;
+	margin: 10px 0;
 }
 input {
 	background-color: transparent;

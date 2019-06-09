@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { Component } from 'react';
 import Loader from '../components/Loader'
 import Folder from '../components/Folder';
+import File from '../components/File';
 import Popup from '../components/Popup';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
@@ -19,13 +20,24 @@ class Home extends Component {
 			folderChildren: [],
 			folderData: {},
 			selectedItem: {},
-			selectedItemDetails: {}
+			selectedItemDetails: {},
+			files: []
 		};
 		this.getPopupAction = this.getPopupAction.bind(this);
 	}
 	componentDidMount() {
 		axios.get(api + this.state.folderId).then((r) => {
 			this.getChildren(r.data);
+		}).catch((e) => {
+
+		}).then(() => {
+
+		});
+
+		axios.get(api + this.state.folderId + '/files').then((r) => {
+			this.setState({
+				files: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.fileResourceList : [],
+			});
 		}).catch((e) => {
 
 		}).then(() => {
@@ -52,9 +64,9 @@ class Home extends Component {
 	};
 
 	//context menu click
-	handleClick = (folder, e, data) => {
+	handleClick = (item, e, data) => {
 		this.setState({
-			selectedItem: folder,
+			selectedItem: item,
 			selectedItemDetails: {}
 		});
 		switch (data.action) {
@@ -69,7 +81,14 @@ class Home extends Component {
 				this.setState({
 					loaded: false
 				});
-				this.getChildren(folder);
+				this.getChildren(item);
+				break;
+			}
+			case 'show': {
+				this.setState({
+					popupType: 'show',
+					popup: true
+				});
 				break;
 			}
 			case 'rename': {
@@ -89,29 +108,16 @@ class Home extends Component {
 	};
 	getChildren = item => {
 		axios.get(item._links.children.href).then((r) => {
-			if (item.folder.id === 'root') {
-				this.setState({
-					loaded: true,
-					popupType: '',
-					popup: false,
-					folderId: item.folder.id,
-					folderChildren: r.data._embedded.folderResourceList.length ? r.data._embedded.folderResourceList : [],
-					folderData: item,
-					selectedItem: {},
-					selectedItemDetails: {}
-				});
-			} else {
-				this.setState({
-					loaded: true,
-					popupType: '',
-					popup: false,
-					folderId: item.folder.id,
-					folderChildren: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.folderResourceList : [],
-					folderData: item,
-					selectedItem: {},
-					selectedItemDetails: {}
-				});
-			}
+			this.setState({
+				loaded: true,
+				popupType: '',
+				popup: false,
+				folderId: item.folder.id,
+				folderChildren: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.folderResourceList : [],
+				folderData: item,
+				selectedItem: {},
+				selectedItemDetails: {}
+			});
 		}).catch((e) => {
 
 		}).then(() => {
@@ -131,6 +137,23 @@ class Home extends Component {
 			});
 		});
 	};
+	// getFile = item => {
+	// 	axios.get(item._links.download.href).then((r) => {
+	// 		this.setState({
+	// 			loaded: true,
+	// 			popupType: '',
+	// 			popup: false,
+	// 			selectedItem: {},
+	// 			selectedItemDetails: {}
+	// 		});
+	// 	}).catch((e) => {
+	//
+	// 	}).then(() => {
+	// 		this.setState({
+	// 			loaded: true
+	// 		});
+	// 	});
+	// };
 
 	// no button yet
 	getRoot = () => {
@@ -145,8 +168,24 @@ class Home extends Component {
 		});
 	};
 
-
-
+	// no point in showing details yet
+	getDetailsFile(file) {
+		// console.log(file);
+		// axios.get(file._links.self.href).then((r) => {
+		// 	this.setState({
+		// 		loaded: true,
+		// 		selectedItem: file,
+		// 		selectedItemDetails: r.data.file
+		// 	});
+		//
+		// }).catch((e) => {
+		//
+		// }).then(() => {
+		// 	this.setState({
+		// 		loaded: true
+		// 	});
+		// });
+	};
 	getDetails(folder) {
 		axios.get(folder._links.self.href).then((r) => {
 			this.setState({
@@ -187,8 +226,6 @@ class Home extends Component {
 					popup: true,
 					popupType: 'success'
 				});
-
-				this.componentDidMount();
 				break;
 			}
 			case 'error': {
@@ -204,6 +241,13 @@ class Home extends Component {
 				});
 				break;
 			}
+			case 'OK': {
+				this.setState({
+					popup: false
+				});
+				this.componentDidMount();
+				break;
+			}
 			default: {
 
 			}
@@ -214,6 +258,12 @@ class Home extends Component {
 		this.setState({
 			popup: true,
 			popupType: 'create'
+		});
+	};
+	createFile = () => {
+		this.setState({
+			popup: true,
+			popupType: 'upload'
 		});
 	};
 	showPopup = () => {
@@ -229,7 +279,6 @@ class Home extends Component {
 	};
 
 	render() {
-
 		if (this.state.loaded && this.state.folderChildren.length) {
 			return (
 				<div>
@@ -276,6 +325,34 @@ class Home extends Component {
 										</ContextMenu>
 									</div>
 								})}
+								{this.state.files.map((file, index) => {
+									return <div key={index} className="folder-container-wrapper file-container-wrapper" onClick={this.getDetailsFile.bind(this, file)}>
+										<ContextMenuTrigger id={index + 'file'}>
+											<File name={file.file.name} links={file._links} id={index + 'file'} file={file}/>
+										</ContextMenuTrigger>
+										<ContextMenu id={index + 'file'}>
+											<MenuItem data={{action: 'show'}} onClick={this.handleClick.bind(this, file)}>
+												<span className="menu-item">
+													<i className="material-icons">get_app</i>Preview
+												</span>
+											</MenuItem>
+											<MenuItem divider />
+											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, file)}>
+												<span className="menu-item">
+													<i className="material-icons">subject</i>Details
+												</span>
+
+											</MenuItem>
+											<MenuItem divider />
+											<MenuItem data={{action: 'delete'}} onClick={this.handleClick.bind(this, file)}>
+												<span className="menu-item">
+													<i className="material-icons">delete</i>Delete
+												</span>
+
+											</MenuItem>
+										</ContextMenu>
+									</div>
+								})}
 							</span>
 							</div>
 						</div>
@@ -283,7 +360,7 @@ class Home extends Component {
 							<p className="button" onClick={this.createItem}><i className="material-icons">
 								add
 							</i>Create new folder</p>
-							<p className="button"><i className="material-icons">
+							<p className="button" onClick={this.createFile}><i className="material-icons">
 								add
 							</i>Add new file</p>
 							{this.detailsToggle()}
@@ -310,7 +387,7 @@ class Home extends Component {
 							<p className="button" onClick={this.createItem}><i className="material-icons">
 								add
 							</i>Create new folder</p>
-							<p className="button"><i className="material-icons">
+							<p className="button" onClick={this.createFile}><i className="material-icons">
 								add
 							</i>Add new file</p>
 							{this.detailsToggle()}
