@@ -6,7 +6,7 @@ import File from '../components/File';
 import Popup from '../components/Popup';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
-const api = 'http://mydisc.xyz/api/folders/';
+const api = 'http://localhost:8080/api/folders/';
 
 class Home extends Component {
 	constructor(props) {
@@ -28,8 +28,6 @@ class Home extends Component {
 	componentDidMount() {
 		axios.get(api + this.state.folderId).then((r) => {
 			this.getChildren(r.data);
-		}).catch((e) => {
-
 		}).then(() => {
 
 		});
@@ -38,12 +36,9 @@ class Home extends Component {
 			this.setState({
 				files: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.fileResourceList : [],
 			});
-		}).catch((e) => {
-
 		}).then(() => {
 
 		});
-
 		document.addEventListener('click', this.handleClickOutside, false);
 	}
 	componentWillUnmount() {
@@ -98,6 +93,13 @@ class Home extends Component {
 				});
 				break;
 			}
+            case 'move': {
+                this.setState({
+                    popupType: 'move',
+                    popup: true
+                });
+                break;
+            }
 			case 'details': {
 				break;
 			}
@@ -106,6 +108,7 @@ class Home extends Component {
 			}
 		}
 	};
+
 	getChildren = item => {
 		axios.get(item._links.children.href).then((r) => {
 			this.setState({
@@ -118,6 +121,7 @@ class Home extends Component {
 				selectedItem: {},
 				selectedItemDetails: {}
 			});
+
 		}).catch((e) => {
 
 		}).then(() => {
@@ -126,6 +130,7 @@ class Home extends Component {
 			});
 		});
 	};
+
 	getParent = () => {
 		axios.get(this.state.folderData._links.parent.href).then((r) => {
 			this.getChildren(r.data);
@@ -168,24 +173,23 @@ class Home extends Component {
 		});
 	};
 
-	// no point in showing details yet
 	getDetailsFile(file) {
-		// console.log(file);
-		// axios.get(file._links.self.href).then((r) => {
-		// 	this.setState({
-		// 		loaded: true,
-		// 		selectedItem: file,
-		// 		selectedItemDetails: r.data.file
-		// 	});
-		//
-		// }).catch((e) => {
-		//
-		// }).then(() => {
-		// 	this.setState({
-		// 		loaded: true
-		// 	});
-		// });
+		axios.get(file._links.self.href).then((r) => {
+			this.setState({
+				loaded: true,
+				selectedItem: file,
+				selectedItemDetails: r.data.file
+			});
+
+		}).catch((e) => {
+
+		}).then(() => {
+			this.setState({
+				loaded: true
+			});
+		});
 	};
+
 	getDetails(folder) {
 		axios.get(folder._links.self.href).then((r) => {
 			this.setState({
@@ -203,20 +207,30 @@ class Home extends Component {
 		});
 
 	};
+
 	convertISO = date => {
 		let day = date.split('T')[0];
 		let time = date.split('T')[1];
 		time = time.split('+')[0];
 		return day + ' ' + time.slice(0, 5);
 	};
+
 	detailsToggle = () => {
-		if (Object.getOwnPropertyNames(this.state.selectedItemDetails).length) {
-			return <div className="details-container">
-				<h4>Name: {this.state.selectedItemDetails.name}</h4>
-				<h4>Created: {this.convertISO(this.state.selectedItemDetails.created_at)}</h4>
-				<h4>Modified: {this.convertISO(this.state.selectedItemDetails.updated_at)}</h4>
-			</div>
-		}
+        if (Object.getOwnPropertyNames(this.state.selectedItemDetails).length) {
+            if (this.state.selectedItem.hasOwnProperty('folder')) {
+                return <div className="details-container">
+					<h4>Name: {this.state.selectedItemDetails.name}</h4>
+					<h4>Created: {this.convertISO(this.state.selectedItemDetails.created_at)}</h4>
+					<h4>Modified: {this.convertISO(this.state.selectedItemDetails.updated_at)}</h4>
+				</div>
+            } else {
+                return <div className="details-container">
+                	<h4>Name: {this.state.selectedItemDetails.name}</h4>
+                	<h4>Size: {this.state.selectedItemDetails.size} bytes</h4>
+                	<h4>Type: {this.state.selectedItemDetails.type}</h4>
+                </div>
+            }
+        }
 	};
 
 	getPopupAction = (action) => {
@@ -309,6 +323,12 @@ class Home extends Component {
 												</span>
 
 											</MenuItem>
+											<MenuItem data={{action: 'move'}} onClick={this.handleClick.bind(this, folder)}>
+												<span className="menu-item">
+													<i className="material-icons">forward</i>Move
+												</span>
+
+											</MenuItem>
 											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">subject</i>Details
@@ -337,6 +357,12 @@ class Home extends Component {
 												</span>
 											</MenuItem>
 											<MenuItem divider />
+											{/*<MenuItem data={{action: 'move'}} onClick={this.handleClick.bind(this, file)}>*/}
+												{/*<span className="menu-item">*/}
+													{/*<i className="material-icons">forward</i>Move*/}
+												{/*</span>*/}
+
+											{/*</MenuItem>*/}
 											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, file)}>
 												<span className="menu-item">
 													<i className="material-icons">subject</i>Details

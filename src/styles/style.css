@@ -273,6 +273,25 @@ input {
 	width: 100%;
 	padding: 10px 0;
 }
+select {
+	width: 100%;
+	margin-bottom: 10px;
+	margin-top: 10px;
+	border-radius: 5px;
+	background-color: transparent;
+	color: var(--accent);
+	padding: 6px;
+	border-color: var(--borders);
+}
+select:focus {
+	outline-color:  var(--accent);
+}
+option {
+	background: black;
+}
+option:hover, option:active {
+	background: var(--accent);
+}
 .breadcrumbs {
 	max-width: 965px;
 	font-size: 20px;
