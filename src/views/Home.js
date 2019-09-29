@@ -6,7 +6,7 @@ import File from '../components/File';
 import Popup from '../components/Popup';
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
-const api = 'http://localhost:8080/api/folders/';
+const api = 'http://localhost:8888/api/folders/';
 
 class Home extends Component {
 	constructor(props) {
@@ -26,21 +26,46 @@ class Home extends Component {
 		this.getPopupAction = this.getPopupAction.bind(this);
 	}
 	componentDidMount() {
+	    console.log(this.state.folderId);
 		axios.get(api + this.state.folderId).then((r) => {
 			this.getChildren(r.data);
+            this.getFiles(r.data);
 		});
-
-		axios.get(api + this.state.folderId + '/files').then((r) => {
-			this.setState({
-				files: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.fileResourceList : [],
-			});
-		});
-
 		document.addEventListener('click', this.handleClickOutside, false);
 	}
 	componentWillUnmount() {
 		document.removeEventListener('click', this.handleClick, false);
 	}
+
+    getChildren = (item) => {
+	    console.log(item);
+        axios.get(item._links.children.href).then((r) => {
+            this.setState({
+                loaded: true,
+                popupType: '',
+                popup: false,
+                folderId: item.folder.id,
+                folderChildren: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.folderResourceList : [],
+                folderData: item,
+                selectedItem: {},
+                selectedItemDetails: {}
+            });
+        });
+    };
+	getFiles = (item) => {
+        axios.get(item._links.files.href).then((r) => {
+            this.setState({
+                files: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.fileResourceList : [],
+            });
+        });
+    };
+
+    getParent = () => {
+        axios.get(this.state.folderData._links.parent.href).then((r) => {
+            this.getChildren(r.data);
+            this.getFiles(r.data);
+        });
+    };
 
 	//click outside context menu
 	handleClickOutside = (e) => {
@@ -91,6 +116,7 @@ class Home extends Component {
 					loaded: false
 				});
 				this.getChildren(item);
+				this.getFiles(item);
 				break;
 			}
 			case 'preview': {
@@ -113,31 +139,11 @@ class Home extends Component {
 		}
 	};
 
-	getChildren = (item) => {
-		axios.get(item._links.children.href).then((r) => {
-			this.setState({
-				loaded: true,
-				popupType: '',
-				popup: false,
-				folderId: item.folder.id,
-				folderChildren: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.folderResourceList : [],
-				folderData: item,
-				selectedItem: {},
-				selectedItemDetails: {}
-			});
-		});
-	};
-
-	getParent = () => {
-		axios.get(this.state.folderData._links.parent.href).then((r) => {
-			this.getChildren(r.data);
-		});
-	};
-
 	// no button yet - is it needed?
 	getRoot = () => {
 		axios.get(api + 'root').then((r) => {
 			this.getChildren(r.data);
+			this.getFiles(r.data);
 		});
 	};
 
@@ -247,7 +253,7 @@ class Home extends Component {
 	};
 
 	render() {
-		if (this.state.loaded && this.state.folderChildren.length) {
+		if (this.state.loaded && (this.state.folderChildren.length || this.state.files.length)) {
 			return (
 				<div>
 					<div className="breadcrumbs">
@@ -312,11 +318,11 @@ class Home extends Component {
 												</span>
 											</MenuItem>
 											<MenuItem divider />
-											{/*<MenuItem data={{action: 'move'}} onClick={this.handleClick.bind(this, file)}>*/}
-												{/*<span className="menu-item">*/}
-													{/*<i className="material-icons">forward</i>Move*/}
-												{/*</span>*/}
-											{/*</MenuItem>*/}
+											<MenuItem data={{action: 'move'}} onClick={this.handleClick.bind(this, file)}>
+												<span className="menu-item">
+													<i className="material-icons">forward</i>Move
+												</span>
+											</MenuItem>
 											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, file)}>
 												<span className="menu-item">
 													<i className="material-icons">subject</i>Details

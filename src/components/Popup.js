@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import axios from "axios";
-const api = 'http://localhost:8080/api/folders/';
+const api = 'http://localhost:8888/api/folders/';
 let apiFile = '';
 
 class Popup extends Component {
@@ -17,7 +17,6 @@ class Popup extends Component {
 	}
 
 	componentDidMount() {
-		console.log(this.props.selectedItem);
 		if (this.props.type === 'rename') {
 			this.setState({
 				nameValue: this.props.selectedItem.folder.name
@@ -38,11 +37,12 @@ class Popup extends Component {
 
 		if (this.props.type === "move") {
             axios.get(this.props.parent._links.children.href).then((r) => {
-            	let siblings = [];
-            	let siblingList = r.data._embedded.folderResourceList;
+                let siblingList = [];
+                let siblings = [];
+
+                Object.getOwnPropertyNames(r.data).length ? siblingList = r.data._embedded.folderResourceList : siblingList = [];
 
                 if (this.props.selectedItem.hasOwnProperty('folder')) {
-
                     for (let i=0; i < siblingList.length; i++) {
 
                         if (siblingList[i].folder.id !== this.props.selectedItem.folder.id) {
@@ -171,9 +171,8 @@ class Popup extends Component {
 						<h4>New file</h4>
 						<p>Choose file to upload</p>
 						<br/>
-
 						<input type="file" onChange={e => this.changeFile(e)}/>
-						<img src={this.state.file} alt="preview"/>
+						{/*<img src={this.state.file} alt="preview"/>*/}
 						<div className="two-btn-container">
 							<p className="button" onClick={() => this.action('upload')}>Upload</p>
 							<p className="button" onClick={() => this.action('cancel')}>Cancel</p>
@@ -275,13 +274,13 @@ class Popup extends Component {
                     axios.get(item._links.self.href, {}).then((r) => {
                         fileId = r.data.file.id;
                         if (this.state.nameValue === 'root') {
-                            axios.patch(api + 'root/files/' + fileId + '/move', null, {headers: { 'Content-Type': 'application/json;charset=UTF-8' }}).then((r) => {
+                            axios.patch(api + 'root/files/' + fileId + '/move',  {folderId: null},  {headers: { 'Content-Type': 'application/json;charset=UTF-8' }}).then((r) => {
                                 this.sendPopupAction('success')
                             }).catch((e) => {
                                 this.sendPopupAction('error')
                             });
                         } else {
-                            axios.patch(api + this.state.nameValue + '/files/' + fileId + '/move', null, {headers: { 'Content-Type': 'application/json;charset=UTF-8' }}).then((r) => {
+                            axios.patch(api + this.props.parent.folder.id + '/files/' + fileId + '/move', {folderId: this.state.nameValue}, {headers: { 'Content-Type': 'application/json;charset=UTF-8' }}).then((r) => {
                                 this.sendPopupAction('success')
                             }).catch((e) => {
                                 this.sendPopupAction('error')
