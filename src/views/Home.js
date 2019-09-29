@@ -28,17 +28,14 @@ class Home extends Component {
 	componentDidMount() {
 		axios.get(api + this.state.folderId).then((r) => {
 			this.getChildren(r.data);
-		}).then(() => {
-
 		});
 
 		axios.get(api + this.state.folderId + '/files').then((r) => {
 			this.setState({
 				files: Object.getOwnPropertyNames(r.data).length ? r.data._embedded.fileResourceList : [],
 			});
-		}).then(() => {
-
 		});
+
 		document.addEventListener('click', this.handleClickOutside, false);
 	}
 	componentWillUnmount() {
@@ -46,7 +43,7 @@ class Home extends Component {
 	}
 
 	//click outside context menu
-	handleClickOutside = e => {
+	handleClickOutside = (e) => {
 		if (e.target.className !== 'folder-checkbox') {
 			this.setState({
 				selectedItemDetails: {}
@@ -72,6 +69,23 @@ class Home extends Component {
 				});
 				break;
 			}
+            case 'details': {
+                break;
+            }
+            case 'download': {
+                this.setState({
+                    popupType: 'download',
+                    popup: true
+                });
+                break;
+            }
+            case 'move': {
+                this.setState({
+                    popupType: 'move',
+                    popup: true
+                });
+                break;
+            }
 			case 'open': {
 				this.setState({
 					loaded: false
@@ -79,9 +93,9 @@ class Home extends Component {
 				this.getChildren(item);
 				break;
 			}
-			case 'show': {
+			case 'preview': {
 				this.setState({
-					popupType: 'show',
+					popupType: 'preview',
 					popup: true
 				});
 				break;
@@ -93,23 +107,13 @@ class Home extends Component {
 				});
 				break;
 			}
-            case 'move': {
-                this.setState({
-                    popupType: 'move',
-                    popup: true
-                });
-                break;
-            }
-			case 'details': {
-				break;
-			}
 			default: {
 
 			}
 		}
 	};
 
-	getChildren = item => {
+	getChildren = (item) => {
 		axios.get(item._links.children.href).then((r) => {
 			this.setState({
 				loaded: true,
@@ -121,55 +125,19 @@ class Home extends Component {
 				selectedItem: {},
 				selectedItemDetails: {}
 			});
-
-		}).catch((e) => {
-
-		}).then(() => {
-			this.setState({
-				loaded: true
-			});
 		});
 	};
 
 	getParent = () => {
 		axios.get(this.state.folderData._links.parent.href).then((r) => {
 			this.getChildren(r.data);
-		}).catch((e) => {
-
-		}).then(() => {
-			this.setState({
-				loaded: true
-			});
 		});
 	};
-	// getFile = item => {
-	// 	axios.get(item._links.download.href).then((r) => {
-	// 		this.setState({
-	// 			loaded: true,
-	// 			popupType: '',
-	// 			popup: false,
-	// 			selectedItem: {},
-	// 			selectedItemDetails: {}
-	// 		});
-	// 	}).catch((e) => {
-	//
-	// 	}).then(() => {
-	// 		this.setState({
-	// 			loaded: true
-	// 		});
-	// 	});
-	// };
 
-	// no button yet
+	// no button yet - is it needed?
 	getRoot = () => {
 		axios.get(api + 'root').then((r) => {
 			this.getChildren(r.data);
-		}).catch((e) => {
-
-		}).then(() => {
-			this.setState({
-				loaded: true
-			});
 		});
 	};
 
@@ -181,12 +149,6 @@ class Home extends Component {
 				selectedItemDetails: r.data.file
 			});
 
-		}).catch((e) => {
-
-		}).then(() => {
-			this.setState({
-				loaded: true
-			});
 		});
 	};
 
@@ -198,17 +160,10 @@ class Home extends Component {
 				selectedItemDetails: r.data.folder
 			});
 
-		}).catch((e) => {
-
-		}).then(() => {
-			this.setState({
-				loaded: true
-			});
 		});
-
 	};
 
-	convertISO = date => {
+	convertISO = (date) => {
 		let day = date.split('T')[0];
 		let time = date.split('T')[1];
 		time = time.split('+')[0];
@@ -249,21 +204,20 @@ class Home extends Component {
 				});
 				break;
 			}
+            case 'OK': {
+                this.setState({
+                    popup: false
+                });
+                this.componentDidMount();
+                break;
+            }
 			case 'cancel': {
 				this.setState({
 					popup: false
 				});
 				break;
 			}
-			case 'OK': {
-				this.setState({
-					popup: false
-				});
-				this.componentDidMount();
-				break;
-			}
 			default: {
-
 			}
 		}
 	};
@@ -319,28 +273,24 @@ class Home extends Component {
 											<MenuItem divider />
 											<MenuItem data={{action: 'rename'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
-													<i className="material-icons">edit</i>Change name
+													<i className="material-icons">edit</i>Rename
 												</span>
-
 											</MenuItem>
 											<MenuItem data={{action: 'move'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">forward</i>Move
 												</span>
-
 											</MenuItem>
 											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">subject</i>Details
 												</span>
-
 											</MenuItem>
 											<MenuItem divider />
 											<MenuItem data={{action: 'delete'}} onClick={this.handleClick.bind(this, folder)}>
 												<span className="menu-item">
 													<i className="material-icons">delete</i>Delete
 												</span>
-
 											</MenuItem>
 										</ContextMenu>
 									</div>
@@ -351,9 +301,14 @@ class Home extends Component {
 											<File name={file.file.name} links={file._links} id={index + 'file'} file={file}/>
 										</ContextMenuTrigger>
 										<ContextMenu id={index + 'file'}>
-											<MenuItem data={{action: 'show'}} onClick={this.handleClick.bind(this, file)}>
+											<MenuItem data={{action: 'preview'}} onClick={this.handleClick.bind(this, file)}>
 												<span className="menu-item">
-													<i className="material-icons">get_app</i>Preview
+													<i className="material-icons">visibility</i>Preview
+												</span>
+											</MenuItem>
+											<MenuItem data={{action: 'download'}} onClick={this.handleClick.bind(this, file)}>
+												<span className="menu-item">
+													<i className="material-icons">get_app</i>Download
 												</span>
 											</MenuItem>
 											<MenuItem divider />
@@ -361,20 +316,17 @@ class Home extends Component {
 												{/*<span className="menu-item">*/}
 													{/*<i className="material-icons">forward</i>Move*/}
 												{/*</span>*/}
-
 											{/*</MenuItem>*/}
 											<MenuItem data={{action: 'details'}} onClick={this.handleClick.bind(this, file)}>
 												<span className="menu-item">
 													<i className="material-icons">subject</i>Details
 												</span>
-
 											</MenuItem>
 											<MenuItem divider />
 											<MenuItem data={{action: 'delete'}} onClick={this.handleClick.bind(this, file)}>
 												<span className="menu-item">
 													<i className="material-icons">delete</i>Delete
 												</span>
-
 											</MenuItem>
 										</ContextMenu>
 									</div>

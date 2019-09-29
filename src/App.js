@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Home from './views/Home';
 import './styles/style.css'
-import './App.css';
 import Loader from "./components/Loader";
 
 class App extends Component {
