@@ -4,8 +4,8 @@ let mainWindow;
 
 function createWindow () {
 	mainWindow = new BrowserWindow({
-		width: 1300,
-		height: 900,
+		width: 1200,
+		height: 800,
 		webPreferences: {
 			nodeIntegration: true
 		}
@@ -24,6 +24,7 @@ function createWindow () {
 		// when you should delete the corresponding element.
 		mainWindow = null
 	});
+	mainWindow.setMenu(null);
 }
 
 // This method will be called when Electron has finished
