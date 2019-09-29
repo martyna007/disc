@@ -17,6 +17,10 @@ How to run MyDisc Application:
 
 Check the [Syemon's readme](https://github.com/Syemon/MyDisc/edit/master/README.md) how to install app with composer and get more detailed info about backend.
 
+## Screens :)
+![Screenshot](https://user-images.githubusercontent.com/21356522/65827025-44433780-e28e-11e9-9a19-835f10c3215a.png)
+![Screenshot2](https://user-images.githubusercontent.com/21356522/65827030-4c9b7280-e28e-11e9-8c63-de997b5a0aa5.png)
+
 ## Authors
 * Front-end - [Martyna Szeszko](https://github.com/martyna007) 
 
