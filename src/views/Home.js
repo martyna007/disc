@@ -26,7 +26,6 @@ class Home extends Component {
 		this.getPopupAction = this.getPopupAction.bind(this);
 	}
 	componentDidMount() {
-	    console.log(this.state.folderId);
 		axios.get(api + this.state.folderId).then((r) => {
 			this.getChildren(r.data);
             this.getFiles(r.data);
@@ -38,7 +37,6 @@ class Home extends Component {
 	}
 
     getChildren = (item) => {
-	    console.log(item);
         axios.get(item._links.children.href).then((r) => {
             this.setState({
                 loaded: true,

@@ -18,7 +18,6 @@
 // 		// 	})
 // 		// };
 // 		// reader.readAsText(file);
-// 		console.log(formData);
 // 		this.props.binary = formData;
 // 	};
 //
