@@ -15,7 +15,7 @@ How to run MyDisc Application:
 6. In client folder run npm install, then `npm run start` to run react in browser
 7. In case to run app in electron, type: `npm run electron`
 
-Check the [Syemon's readme](https://github.com/Syemon/MyDisc) how to run app with docker and get more detailed info about backend.
+Check the [Syemon's readme](https://github.com/Syemon/MyDisc) to see how to run app with docker and get more detailed info about backend.
 
 ## Screenshots
 ![Screenshot](https://user-images.githubusercontent.com/21356522/65827025-44433780-e28e-11e9-9a19-835f10c3215a.png)
