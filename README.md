@@ -9,7 +9,7 @@ Frontend of MyDisc application made with ReactJS and Electron
 How to run MyDisc Application:
 1. git clone [MyDisc](https://github.com/Syemon/MyDisc.git) from [Syemon](https://github.com/Syemon) to get backend
 2. git clone (into client folder) [this repo](https://github.com/martyna007/disc.git) to get frontend
-3. Create database in mysql named `mydisc`
+3. Create database in mysql named `mydisc`(in case of problems, here's [schema](https://github.com/martyna007/disc/files/3666398/schema.txt))
 4. Run command:  `./gradlew build && java -jar build/libs/MyDisc-0.0.1-SNAPSHOT.jar`
 5. And the run: `./gradlew bootRun`
 6. In client folder run npm install, then `npm run start` to run react in browser
