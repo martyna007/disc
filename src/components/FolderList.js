@@ -4,6 +4,7 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu"
 
 class FolderList extends Component {
 
+    //context menu click
 	handleClick = (item, e, data) => {
         this.props.handleClickFromItem(item, data.action);
 	};

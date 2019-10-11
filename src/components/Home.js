@@ -4,7 +4,6 @@ import Loader from './Loader'
 import FolderList from './FolderList'
 import FileList from './FileList'
 import Modal from './Modal'
-import Sidebar from './Sidebar'
 
 const api = 'http://localhost:8888/api/folders/';
 
@@ -224,34 +223,29 @@ class Home extends Component {
 	};
 
 	render() {
-		if (this.state.loaded) {
-			return (
-				<div>
-					<div className="breadcrumbs">
-						<h2>{'/' + this.state.folderData.folder.name}</h2>
-						{this.showBackButton()}
-					</div>
-					<div className="container">
-						{this.state.popup ? (<Modal type={this.state.popupType} popupAction={this.getPopupAction} parent={this.state.folderData} selectedItem={this.state.selectedItem} />) : null}
-						<div className="main-container">
-							<div className="border-container">
-								{this.state.folderChildren.length || this.state.files.length ? (
-									<span>
-										<FolderList folderList={this.state.folderChildren} getDetails={this.getDetails} handleClickFromItem={this.handleClickFromItem}/>
-										<FileList fileList={this.state.files} getDetailsFile={this.getDetailsFile} handleClickFromItem={this.handleClickFromItem}/>
-									</span>) : null}
-							</div>
-						</div>
-						<Sidebar createItem={this.createItem} createFile={this.createFile} item={this.state.selectedItemDetails} />
-					</div>
-				</div>
-			);
+		if (this.state.loaded && (this.state.folderChildren.length || this.state.files.length)) {
+			return <span>
+				<div className="breadcrumbs">
+					<h2>{'/' + this.state.folderData.folder.name}</h2>
+					{this.showBackButton()}
+				</div>	
+				{this.state.popup ? (<Modal type={this.state.popupType} popupAction={this.getPopupAction} parent={this.state.folderData} selectedItem={this.state.selectedItem} />) : null}
+				<FolderList folderList={this.state.folderChildren} getDetails={this.getDetails} handleClickFromItem={this.handleClickFromItem} />
+				<FileList fileList={this.state.files} getDetailsFile={this.getDetailsFile} handleClickFromItem={this.handleClickFromItem} />
+			</span>
+		} else if (this.state.loaded) {
+			return <span>
+				<div className="breadcrumbs">
+					<h2>{'/' + this.state.folderData.folder.name}</h2>
+					{this.showBackButton()}
+				</div>	
+				{this.state.popup ? (<Modal type={this.state.popupType} popupAction={this.getPopupAction} parent={this.state.folderData} selectedItem={this.state.selectedItem} />) : null}
+			</span>
 		} else {
 			return <div>
 				<Loader />
 			</div>
 		}
-
 	}
 }
 
